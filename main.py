@@ -27,6 +27,10 @@ def call(link="err", **kwargs):
     title = soup.select_one('.page-title').get_text()
     if not show:
         price = soup.find("strong", {"class": "dominant-price"}).get_text()
+        price = price.replace(' ', '')
+        price = price.replace('€', '')
+        prices = price.split(",")
+        price = int(prices[0]) + float(prices[1]) / 10
     else:
         lim = 64 if 'limit' not in kwarg_dict.keys() else kwargs['limit']
         divs = soup.findAll("li", {"class": "js-product-card"}, limit=lim)
@@ -64,10 +68,10 @@ def call(link="err", **kwargs):
         "product_name": title,
         "base_price": price if not show else prices_no_fees, #returns a list of all base prices of product from all stores if show_all is True, else returns first price found (cheapest)
         "store_names": titles if show else None, #returns only if show_all is True
-        "store_count": store_count,
-        "rating_count": rating_count,
+        "store_count": int(store_count),
+        "rating_count": int(rating_count),
         "rating_score": rating_score,
-        "discussion_count": discussion_count,
+        "discussion_count": int(discussion_count),
         "lowest_price": lowest_base_price,
         "max_price": max_base_price,
         "is_on_sale": is_on_sale
