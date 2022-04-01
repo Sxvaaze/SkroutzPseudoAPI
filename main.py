@@ -44,7 +44,7 @@ def call(link="err", **kwargs):
             price = price.replace(' ', '')
             price = price.replace('€', '')
             prices = price.split(",")
-            price = int(prices[0]) + float(prices[1]) / 10
+            price = int(prices[0]) + float(prices[1]) / 100
     else:
         lim = 64 if 'limit' not in kwarg_dict.keys() else kwargs['limit']
         divs = soup.findAll("li", {"class": "js-product-card"}, limit=lim)
@@ -63,7 +63,7 @@ def call(link="err", **kwargs):
                 to_append = to_append[:len(to_append)-2].split(",")
                 euros = float(to_append[0])
                 cents = int(to_append[1])
-                final = euros + cents / 10
+                final = euros + cents / 100
                 prices_no_fees.append(final)
 
     rating_count = None
@@ -73,7 +73,7 @@ def call(link="err", **kwargs):
     rating_score = None
     if not filter_returns or filter_returns and 'rating_score' in kwarg_dict['data']:
         rating_score_scrape = soup.find("a", {"class": ["rating", "big_stars"]})['title'][0:3].split(",") # Future to-do: make this work with child properties for fuck's shake.
-        rating_score = int(rating_score_scrape[0]) + int(rating_score_scrape[1]) / 10
+        rating_score = int(rating_score_scrape[0]) + int(rating_score_scrape[1]) / 100
 
     discussion_count = None
     if not filter_returns or filter_returns and 'discussion_count' in kwarg_dict['data']:
@@ -99,7 +99,7 @@ def call(link="err", **kwargs):
             price = price.replace(' ', '')
             price = price.replace('€', '')
             prices = price.split(",")
-            price = int(prices[0]) + float(prices[1]) / 10
+            price = int(prices[0]) + float(prices[1]) / 100
         lowest_base_price = price
     if not filter_returns or filter_returns and 'max_price' in kwarg_dict['data']:
         if not show:
@@ -107,7 +107,7 @@ def call(link="err", **kwargs):
             price = price.replace(' ', '')
             price = price.replace('€', '')
             prices = price.split(",")
-            price = int(prices[0]) + float(prices[1]) / 10
+            price = int(prices[0]) + float(prices[1]) / 100
             max_base_price = price
         else:
             prices_no_fees = []
@@ -116,7 +116,7 @@ def call(link="err", **kwargs):
                 to_append = to_append[:len(to_append)-2].split(",")
                 euros = float(to_append[0])
                 cents = int(to_append[1])
-                final = euros + cents / 10
+                final = euros + cents / 100
                 prices_no_fees.append(final)
             max_base_price = prices_no_fees[-1]
         
