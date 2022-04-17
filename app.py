@@ -22,7 +22,7 @@ import main as skroutzapi
         \::/____/                \::/    /                \::/    /                 ~~              
          ~~                       \/____/                  \/____/            
 
-                            SkroutzPseudo API V1.1.0 Beta by github.com/Sxvaaze
+                            SkroutzPseudo API V1.2.0 Beta by github.com/Sxvaaze
 """
 
 # If link is empty or not a valid skroutz product url (does not contain "skroutz.gr/s/") then all api calls will return an error defined by function filter_input in main.py
