@@ -23,6 +23,7 @@ def filter_input(link, data_is_empty, store_data_is_empty):
 def store_handler(url, sdata):
     page = requests.get(url, headers={"User-Agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'})
     soup = BeautifulSoup(page.content, 'html.parser')
+
     if sdata is None:
         show_all = True
     else:
@@ -122,6 +123,54 @@ def store_handler(url, sdata):
 
     return return_dict
 
+def categoryHandler(url):
+    page = requests.get(url, headers={"User-Agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'})
+    soup = BeautifulSoup(page.content, 'html.parser')
+        
+    cards = list(soup.find_all(attrs={'class': 'card'}))
+    data =  []
+
+    first = True
+    for reg in cards:
+        if not first:
+            product_content = reg.find("div", {"class": "card-content"})
+
+            # PRICE SECTION
+            product_price = reg.find("div", {"class": "price"})
+            price_str = product_price.findChildren("a", {"class": "js-sku-link"})[0].get_text()
+            price = float(''.join(char for char in price_str if char.isdigit() or char == ",").replace(",", "."))
+
+            # PRODUCT SECTION
+            product_name = product_content.findChildren("a", {"class": "js-sku-link"})[0]
+            if product_name.has_attr("title"):
+                product_name = product_content.findChildren("a", {"class": "js-sku-link"})[0]['title']
+                
+            product_image = reg.find("a", {"class": "js-sku-link"}).findChildren("img")[0]
+            if product_image.has_attr("src"):
+                product_image = reg.find("a", {"class": "js-sku-link"}).findChildren("img")[0]['src']
+
+            # RATINGS SECTION
+            product_rating = reg.find("div", {"class": "rating-with-count"}).findChildren("a")[0].findChildren("div")[0]
+            ratings = int(product_rating.find("div").get_text())
+            rating_score = float(product_rating.find("span").get_text())
+
+            # STORE SECTION
+            store_query = product_price.find("span", {"class": "shop-count"}).get_text()
+            store_count = int(''.join(char for char in store_query if char.isdigit()))
+            
+            to_append = {
+                'product_name': product_name,
+                'product_price': price,
+                'product_image': product_image,
+                'ratings': ratings,
+                'rating_score': rating_score,
+                'store_count': store_count, 
+            }
+            data.append(to_append)
+        else:
+            first = False
+    return data
+
 def call(link="err", **kwargs):
     kwarg_dict = dict()
     for key,value in kwargs.items():
@@ -147,6 +196,9 @@ def call(link="err", **kwargs):
             store_data_length = len(kwarg_dict['store_data']) == 0
         if 'show_all' in kwarg_dict.keys():
             show = kwarg_dict['show_all']
+        if 'category' in kwarg_dict.keys() and kwarg_dict['category']:
+            return categoryHandler(link)
+            
 
     if filter_input(link, data_length, store_data_length):
         return
@@ -156,7 +208,6 @@ def call(link="err", **kwargs):
         
     page = requests.get(link, headers={"User-Agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'})
     soup = BeautifulSoup(page.content, 'html.parser')
-    
     title = soup.select_one('.page-title').get_text() if not filter_returns or filter_returns and 'product_name' in kwarg_dict['data'] else None
     price = None
     if not show:
@@ -165,7 +216,7 @@ def call(link="err", **kwargs):
             price = price.replace(' ', '')
             price = price.replace('€', '')
             prices = price.split(",")
-            price = int(prices[0]) + float(prices[1]) / 10
+            price = int(prices[0]) + float(prices[1]) / 100
     else:
         lim = 64 if 'limit' not in kwarg_dict.keys() else kwargs['limit']
         divs = soup.findAll("li", {"class": "js-product-card"}, limit=lim)
@@ -184,7 +235,7 @@ def call(link="err", **kwargs):
                 to_append = to_append[:len(to_append)-2].split(",")
                 euros = float(to_append[0])
                 cents = int(to_append[1])
-                final = euros + cents / 10
+                final = euros + cents / 100
                 prices_no_fees.append(final)
 
     rating_count = None
@@ -220,7 +271,7 @@ def call(link="err", **kwargs):
             price = price.replace(' ', '')
             price = price.replace('€', '')
             prices = price.split(",")
-            price = int(prices[0]) + float(prices[1]) / 10
+            price = int(prices[0]) + float(prices[1]) / 100
         lowest_base_price = price
     if not filter_returns or filter_returns and 'max_price' in kwarg_dict['data']:
         if not show:
@@ -228,7 +279,7 @@ def call(link="err", **kwargs):
             price = price.replace(' ', '')
             price = price.replace('€', '')
             prices = price.split(",")
-            price = int(prices[0]) + float(prices[1]) / 10
+            price = int(prices[0]) + float(prices[1]) / 100
             max_base_price = price
         else:
             prices_no_fees = []
@@ -237,7 +288,7 @@ def call(link="err", **kwargs):
                 to_append = to_append[:len(to_append)-2].split(",")
                 euros = float(to_append[0])
                 cents = int(to_append[1])
-                final = euros + cents / 10
+                final = euros + cents / 100
                 prices_no_fees.append(final)
             max_base_price = prices_no_fees[-1]
         
